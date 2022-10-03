@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react';
-import { members } from '../database/members';
-import { MemberListItem } from './MemberListItem';
+import { removeUser } from '../api/apiHelperFunctions';
+
+
+
+const handleClick = ( memberId: number ) => {
+    removeUser(memberId);
+}
+
+
+
+
 
 
 export interface Member {
@@ -11,8 +20,12 @@ export interface Member {
     activities: string[];
 }
 
+interface SearchableListProps {
+    list?: any;
+    listItemComponent: any;
+}
 
-export const SearchableList = () => {
+export const EditMembersList = ({ list, listItemComponent: ListItemComponent }: SearchableListProps) => {
 
     const [ searchTerm, setSearchTerm ] = useState('');
     const [ filter, setFilter ] = useState('all')
@@ -21,18 +34,18 @@ export const SearchableList = () => {
     
     useEffect(() => {
         if((searchTerm === '') && (filter === 'all')) {
-            setFilteredList(members);
+            setFilteredList(list);
         } else {
-            const newList = members.filter((member: Member) => (
+            const newList = list.filter((member: Member) => (
                 member.name.toUpperCase().startsWith(searchTerm.toUpperCase())
                  && (member.activities.includes(filter) || filter === 'all')
-            ));
+            )); 
             setFilteredList(newList)
         }
-    }, [searchTerm, filter])
+    }, [searchTerm, list])
 
 
-    return (
+    return list ? (
         <>
             <div className='flex justify-between w-full'>
                 <div className="mb-3 xl:w-96">
@@ -65,27 +78,18 @@ export const SearchableList = () => {
                     placeholder='Search'
                     />
                 </div>
-                <div>
-                    <div className="inline-flex shadow-md hover:shadow-lg focus:shadow-lg" role="group">
-                        <button onClick={() => setFilter('all')} type="button" className="rounded-l inline-block px-6 py-2.5 bg-blue-600 text-white font-medium text-xs leading-tight uppercase hover:bg-blue-700 focus:bg-blue-700 focus:outline-none focus:ring-0 active:bg-blue-800 transition duration-150 ease-in-out">Show All</button>
-                        <button onClick={() => setFilter('hiking')} type="button" className="inline-block px-6 py-2.5 bg-blue-600 text-white font-medium text-xs leading-tight uppercase hover:bg-blue-700 focus:bg-blue-700 focus:outline-none focus:ring-0 active:bg-blue-800 transition duration-150 ease-in-out">Hikers</button>
-                        <button onClick={() => setFilter('biking')} type="button" className=" inline-block px-6 py-2.5 bg-blue-600 text-white font-medium text-xs leading-tight uppercase hover:bg-blue-700 focus:bg-blue-700 focus:outline-none focus:ring-0 active:bg-blue-800 transition duration-150 ease-in-out">Bikers</button>
-                        <button onClick={() => setFilter('running')}type="button" className=" rounded-r inline-block px-6 py-2.5 bg-blue-600 text-white font-medium text-xs leading-tight uppercase hover:bg-blue-700 focus:bg-blue-700 focus:outline-none focus:ring-0 active:bg-blue-800 transition duration-150 ease-in-out">Runners</button>
-                    </div>
-                </div>
             </div>
             <div className='w-full'>
-                <p className='mb-8'>Total Results: {filteredList.length}</p>
                 <ul className="bg-white rounded-lg border border-gray-200 text-gray-900 w-full">
                         {
                             filteredList.map((filteredListItem: Member) => {
                                 return (
                                     <li key={filteredListItem.id} className="px-6 py-2 border-b border-gray-200 w-full rounded-t-lg flex justify-between">
                                         <div>
-                                            <MemberListItem  member={filteredListItem} />
+                                            <ListItemComponent  member={filteredListItem} />
                                         </div>
                                         <div>
-                                            <button type="button" className="inline-block px-6 py-2.5 bg-blue-600 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out">Remove</button>
+                                            <button onClick={ () => handleClick( filteredListItem.id ) } type="button" className="inline-block px-6 py-2.5 bg-blue-600 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out">Remove</button>
                                         </div>
                                     </li>
                                 )
@@ -94,5 +98,5 @@ export const SearchableList = () => {
                 </ul>
             </div>
         </>
-    )
+    ) : <p>Loading...</p>
 }
